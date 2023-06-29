@@ -10,16 +10,15 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.chains import ChatVectorDBChain, LLMChain
+from langchain.chains import LLMChain
 from langchain.chains.chat_vector_db.prompts import CONDENSE_QUESTION_PROMPT
-from langchain.chains.question_answering import load_qa_chain
+from langchain.chains.conversational_retrieval.base import _get_chat_history
+
 from langchain.vectorstores import VectorStore
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.llms import OpenAI
-from langchain.prompts import PromptTemplate
 
-NUM_CHUNKS = 5
-model_name = 'gpt-3.5-turbo'
+from prompts import STUFF_PROMPT
 
 def parse_pdf(file: BytesIO) -> List[str]:
     ''' PDF parser '''
@@ -88,6 +87,16 @@ def get_sources(vectorstore: VectorStore, query: str) -> List[Document]:
 
     return docs
 
+
+def get_condensed_question(user_input: str, chat_history_tuples, model_name: str, openai_api_key: str):
+    llm=ChatOpenAI(model_name=model_name, openai_api_key=openai_api_key)
+    question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT)
+
+    condensed_question = question_generator.predict(question=user_input, chat_history=_get_chat_history(chat_history_tuples))
+
+    return condensed_question
+
+
 def get_answer(docs: List[Document], query: str, openai_api_key: str) -> Dict[str, Any]:
     """Gets an answer to a question from a list of Documents."""
 
@@ -101,43 +110,9 @@ def get_answer(docs: List[Document], query: str, openai_api_key: str) -> Dict[st
         prompt=STUFF_PROMPT,
     )
 
-    # Cohere doesn't work very well as of now.
-    # chain = load_qa_with_sources_chain(
-    #     Cohere(temperature=0), chain_type="stuff", prompt=STUFF_PROMPT  # type: ignore
-    # )
     answer = chain(
         {"input_documents": docs, "question": query}, return_only_outputs=True
     )
+
     return answer
 
-
-
-
-## Use a shorter template to reduce the number of tokens in the prompt
-template = """Create a final answer to the given questions using the provided document excerpts(in no particular order) as references. ALWAYS include a "SOURCES" section in your answer including only the minimal set of sources needed to answer the question. If you are unable to answer the question, simply state that you do not know. Do not attempt to fabricate an answer and leave the SOURCES section empty.
-
----------
-
-QUESTION: What  is the purpose of ARPA-H?
-=========
-Content: More support for patients and families. \n\nTo get there, I call on Congress to fund ARPA-H, the Advanced Research Projects Agency for Health. \n\nIt’s based on DARPA—the Defense Department project that led to the Internet, GPS, and so much more.  \n\nARPA-H will have a singular purpose—to drive breakthroughs in cancer, Alzheimer’s, diabetes, and more.
-Source: 1-32
-Content: While we’re at it, let’s make sure every American can get the health care they need. \n\nWe’ve already made historic investments in health care. \n\nWe’ve made it easier for Americans to get the care they need, when they need it. \n\nWe’ve made it easier for Americans to get the treatments they need, when they need them. \n\nWe’ve made it easier for Americans to get the medications they need, when they need them.
-Source: 1-33
-Content: The V.A. is pioneering new ways of linking toxic exposures to disease, already helping  veterans get the care they deserve. \n\nWe need to extend that same care to all Americans. \n\nThat’s why I’m calling on Congress to pass legislation that would establish a national registry of toxic exposures, and provide health care and financial assistance to those affected.
-Source: 1-30
-=========
-FINAL ANSWER: The purpose of ARPA-H is to drive breakthroughs in cancer, Alzheimer’s, diabetes, and more.
-SOURCES: 1-32
-
----------
-
-QUESTION: {question}
-=========
-{summaries}
-=========
-FINAL ANSWER:"""
-
-STUFF_PROMPT = PromptTemplate(
-    template=template, input_variables=["summaries", "question"]
-)
