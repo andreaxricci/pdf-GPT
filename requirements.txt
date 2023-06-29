@@ -9,3 +9,5 @@ openai
 black
 streamlit
 streamlit-chat==0.0.2.2
+chromadb==0.3.26
+tiktoken
