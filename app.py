@@ -4,16 +4,25 @@ import streamlit as st
 from streamlit_chat import message
 from openai.error import OpenAIError
 
-from utils import text_split, parse_pdf, get_embeddings, get_sources, get_answer, get_condensed_question
+from utils import (
+    text_split,
+    parse_pdf,
+    get_embeddings,
+    get_sources,
+    get_answer,
+    get_condensed_question,
+    # get_sources_bis,
+)
 
 st.set_page_config(page_title="pdf-GPT", page_icon="📖", layout="wide")
 st.header("pdf-GPT")
 
-if 'generated' not in st.session_state:
-    st.session_state['generated'] = []
+if "generated" not in st.session_state:
+    st.session_state["generated"] = []
 
-if 'past' not in st.session_state:
-    st.session_state['past'] = []
+if "past" not in st.session_state:
+    st.session_state["past"] = []
+
 
 def clear_submit():
     st.session_state["submit"] = False
@@ -39,8 +48,8 @@ with st.sidebar:
     )
 
     model_name = st.radio(
-        "Select the model",
-        ('gpt-3.5-turbo', 'text-davinci-003', 'gpt-4'))
+        "Select the model", ("gpt-3.5-turbo", "text-davinci-003", "gpt-4")
+    )
 
     uploaded_file = st.file_uploader(
         "Upload file",
@@ -61,7 +70,7 @@ if uploaded_file:
         pdf_document = parse_pdf(uploaded_file)
         text = text_split(pdf_document)
         try:
-            vs = get_embeddings(text,openai_api_key)
+            vs = get_embeddings(text, openai_api_key)
             st.session_state["api_key_configured"] = True
         except OpenAIError as e:
             st.error(e._message)
@@ -77,18 +86,24 @@ if uploaded_file:
             st.info("Please add your OpenAI API key to continue.")
 
         if uploaded_file and question and openai_api_key:
-
             try:
-                chat_history_tuples = [(st.session_state['past'][i], st.session_state['generated'][i]) for i in range(len(st.session_state['generated']))]
-                condensed_question = get_condensed_question(question, chat_history_tuples, model_name, openai_api_key)
-    
+                chat_history_tuples = [
+                    (st.session_state["past"][i], st.session_state["generated"][i])
+                    for i in range(len(st.session_state["generated"]))
+                ]
+                condensed_question = get_condensed_question(
+                    question, chat_history_tuples, model_name, openai_api_key
+                )
+
                 sources = get_sources(vs, condensed_question)
                 answer = get_answer(sources, condensed_question, openai_api_key)
+                # answer2 = get_sources_bis(vs,condensed_question,model_name,openai_api_key,st.session_state)
 
-                st.session_state.generated.append(answer["output_text"]) 
+                st.session_state.generated.append(answer["output_text"])
+                # st.session_state.generated.append(answer["answer"])
                 st.session_state.past.append(question)
 
-                #for source in sources:
+                # for source in sources:
                 #    st.markdown(source.page_content)
                 #    st.markdown(source.metadata["source"])
                 #    st.markdown("---")
@@ -96,8 +111,18 @@ if uploaded_file:
             except OpenAIError as e:
                 st.error(e._message)
 
-            if st.session_state['generated']:
-                for i in range(len(st.session_state['generated'])-1, -1, -1):
-                    message(st.session_state["generated"][i], avatar_style="initials", seed="B", key=str(i))
-                    message(st.session_state['past'][i], is_user=True, avatar_style="initials", seed="A", key=str(i) + '_user')
-
+            if st.session_state["generated"]:
+                for i in range(len(st.session_state["generated"]) - 1, -1, -1):
+                    message(
+                        st.session_state["generated"][i],
+                        avatar_style="initials",
+                        seed="B",
+                        key=str(i),
+                    )
+                    message(
+                        st.session_state["past"][i],
+                        is_user=True,
+                        avatar_style="initials",
+                        seed="A",
+                        key=str(i) + "_user",
+                    )
