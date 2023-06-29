@@ -1,0 +1,11 @@
+pylint
+pytest
+pytest-cov
+click
+python-dotenv
+langchain
+pypdf
+openai
+black
+streamlit
+streamlit-chat==0.0.2.2
