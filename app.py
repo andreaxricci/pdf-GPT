@@ -11,7 +11,7 @@ from utils import (
     get_sources,
     get_answer,
     get_condensed_question,
-    # get_sources_bis,
+    get_answers_bis,
 )
 
 st.set_page_config(page_title="pdf-GPT", page_icon="📖", layout="wide")
@@ -51,6 +51,9 @@ with st.sidebar:
         "Select the model", ("gpt-3.5-turbo", "text-davinci-003", "gpt-4")
     )
 
+    approach = st.radio(
+        "Choose an approach", ("1", "2"))
+
     uploaded_file = st.file_uploader(
         "Upload file",
         type=["pdf"],
@@ -87,20 +90,21 @@ if uploaded_file:
 
         if uploaded_file and question and openai_api_key:
             try:
-                chat_history_tuples = [
+                if approach == 1:
+                    chat_history_tuples = [
                     (st.session_state["past"][i], st.session_state["generated"][i])
                     for i in range(len(st.session_state["generated"]))
-                ]
-                condensed_question = get_condensed_question(
-                    question, chat_history_tuples, model_name, openai_api_key
-                )
-
-                sources = get_sources(vs, condensed_question)
-                answer = get_answer(sources, condensed_question, openai_api_key)
-                # answer2 = get_sources_bis(vs,condensed_question,model_name,openai_api_key,st.session_state)
-
-                st.session_state.generated.append(answer["output_text"])
-                # st.session_state.generated.append(answer["answer"])
+                    ]
+                    condensed_question = get_condensed_question(
+                        question, chat_history_tuples, model_name, openai_api_key
+                    )
+                    sources = get_sources(vs, condensed_question)
+                    answer = get_answer(sources, condensed_question, openai_api_key)
+                    st.session_state.generated.append(answer["output_text"])
+                else:
+                    answer = get_answers_bis(vs,question,model_name,openai_api_key,st.session_state)
+                    st.session_state.generated.append(answer["answer"])
+                
                 st.session_state.past.append(question)
 
                 # for source in sources:
