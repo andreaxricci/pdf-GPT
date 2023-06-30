@@ -2,6 +2,7 @@ import base64
 
 import streamlit as st
 from streamlit_chat import message
+from streamlit_javascript import st_javascript
 from openai.error import OpenAIError
 
 from utils import (
@@ -28,7 +29,7 @@ def clear_submit():
     st.session_state["submit"] = False
 
 
-def displayPDF(upl_file):
+def displayPDF(upl_file, ui_width):
     # Read file as bytes:
     bytes_data = upl_file.getvalue()
 
@@ -36,11 +37,23 @@ def displayPDF(upl_file):
     base64_pdf = base64.b64encode(bytes_data).decode("utf-8")
 
     # Embed PDF in HTML
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width={str(ui_width)} height={str(ui_width*4/3)} type="application/pdf"></iframe>'
 
     # Display file
     st.markdown(pdf_display, unsafe_allow_html=True)
 
+def displayPDFpage(upl_file, page_nr):
+    # Read file as bytes:
+    bytes_data = upl_file.getvalue()
+
+    # Convert to utf-8
+    base64_pdf = base64.b64encode(bytes_data).decode("utf-8")
+
+    # Embed PDF in HTML
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}#page={page_nr}" width="700" height="1000" type="application/pdf"></iframe>'
+
+    # Display file
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 with st.sidebar:
     openai_api_key = st.text_input(
@@ -67,7 +80,8 @@ col1, col2 = st.columns(spec=[2, 1], gap="small")
 
 if uploaded_file:
     with col1:
-        displayPDF(uploaded_file)
+        ui_width = st_javascript("window.innerWidth")
+        displayPDF(uploaded_file, ui_width -10)
 
     with col2:
         pdf_document = parse_pdf(uploaded_file)
