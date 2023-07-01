@@ -17,4 +17,7 @@ Extract information from a PDF file via a conversational agent
 
 3. Example of basic conversation:
 
-<img width="1438" alt="Screenshot 2023-06-29 at 17 23 27" src="https://github.com/andreaxricci/pdf-GPT/assets/62494809/101acac2-94de-4a73-9c61-74f1acc793ad">
+<img width="1440" alt="Screenshot 2023-07-01 at 17 39 01" src="https://github.com/andreaxricci/pdf-GPT/assets/62494809/6b52ed09-09c4-4a5f-87fb-8be709bdda9e">
+
+
+
