@@ -29,7 +29,7 @@ def clear_submit():
     st.session_state["submit"] = False
 
 
-def displayPDF(upl_file, ui_width):
+def displayPDF(upl_file, width):
     # Read file as bytes:
     bytes_data = upl_file.getvalue()
 
@@ -37,7 +37,7 @@ def displayPDF(upl_file, ui_width):
     base64_pdf = base64.b64encode(bytes_data).decode("utf-8")
 
     # Embed PDF in HTML
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width={str(ui_width)} height={str(ui_width*4/3)} type="application/pdf"></iframe>'
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width={str(width)} height={str(width*4/3)} type="application/pdf"></iframe>'
 
     # Display file
     st.markdown(pdf_display, unsafe_allow_html=True)
