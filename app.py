@@ -34,7 +34,7 @@ def displayPDF(upl_file, width):
     bytes_data = upl_file.getvalue()
 
     # Convert to utf-8
-    base64_pdf = base64.b64encode(bytes_data).decode("utf-8")
+    base64_pdf = base64.b64encode(bytes_data).decode("utf-8", 'ignore')
 
     # Embed PDF in HTML
     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width={str(width)} height={str(width*4/3)} type="application/pdf"></iframe>'
